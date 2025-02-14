@@ -1,0 +1,43 @@
+WIENER-CRATE-MIB::outputIndex.u501                         ,= .1.3.6.1.4.1.19947.1.3.2.1.1.501  ,= INTEGER: u500(501)
+WIENER-CRATE-MIB::outputName.u501                          ,= .1.3.6.1.4.1.19947.1.3.2.1.2.501  ,= STRING: U500
+WIENER-CRATE-MIB::outputGroup.u501                         ,= .1.3.6.1.4.1.19947.1.3.2.1.3.501  ,= INTEGER: 0
+WIENER-CRATE-MIB::outputStatus.u501                        ,= .1.3.6.1.4.1.19947.1.3.2.1.4.501  ,= BITS: 00 01 outputAdjusting(15)
+WIENER-CRATE-MIB::outputMeasurementSenseVoltage.u501       ,= .1.3.6.1.4.1.19947.1.3.2.1.5.501  ,= Opaque: Float: 0.437632 V
+WIENER-CRATE-MIB::outputMeasurementTerminalVoltage.u501    ,= .1.3.6.1.4.1.19947.1.3.2.1.6.501  ,= Opaque: Float: 0.437632 V
+WIENER-CRATE-MIB::outputMeasurementCurrent.u501            ,= .1.3.6.1.4.1.19947.1.3.2.1.7.501  ,= Opaque: Float: 0.000000 A
+WIENER-CRATE-MIB::outputMeasurementTemperature.u501        ,= .1.3.6.1.4.1.19947.1.3.2.1.8.501  ,= INTEGER: 29 deg.C
+WIENER-CRATE-MIB::outputSwitch.u501                        ,= .1.3.6.1.4.1.19947.1.3.2.1.9.501  ,= INTEGER: off(0)
+WIENER-CRATE-MIB::outputVoltage.u501                       ,= .1.3.6.1.4.1.19947.1.3.2.1.10.501 ,= Opaque: Float: 1000.000000 V
+WIENER-CRATE-MIB::outputCurrent.u501                       ,= .1.3.6.1.4.1.19947.1.3.2.1.12.501 ,= Opaque: Float: 0.002000 A
+WIENER-CRATE-MIB::outputVoltageRiseRate.u501               ,= .1.3.6.1.4.1.19947.1.3.2.1.13.501 ,= Opaque: Float: 40.000000 V/s
+WIENER-CRATE-MIB::outputVoltageFallRate.u501               ,= .1.3.6.1.4.1.19947.1.3.2.1.14.501 ,= Opaque: Float: 40.000000 V/s
+WIENER-CRATE-MIB::outputSupervisionBehavior.u501           ,= .1.3.6.1.4.1.19947.1.3.2.1.15.501 ,= INTEGER: 4160
+WIENER-CRATE-MIB::outputSupervisionMinSenseVoltage.u501    ,= .1.3.6.1.4.1.19947.1.3.2.1.16.501 ,= Opaque: Float: -nan V
+WIENER-CRATE-MIB::outputSupervisionMaxSenseVoltage.u501    ,= .1.3.6.1.4.1.19947.1.3.2.1.17.501 ,= Opaque: Float: -nan V
+WIENER-CRATE-MIB::outputSupervisionMaxTerminalVoltage.u501 ,= .1.3.6.1.4.1.19947.1.3.2.1.18.501 ,= Opaque: Float: 0.000000 V
+WIENER-CRATE-MIB::outputSupervisionMaxCurrent.u501         ,= .1.3.6.1.4.1.19947.1.3.2.1.19.501 ,= Opaque: Float: 0.000000 A
+WIENER-CRATE-MIB::outputSupervisionMaxTemperature.u501     ,= .1.3.6.1.4.1.19947.1.3.2.1.20.501 ,= INTEGER: 127 deg.C
+WIENER-CRATE-MIB::outputConfigMaxSenseVoltage.u501         ,= .1.3.6.1.4.1.19947.1.3.2.1.21.501 ,= Opaque: Float: 4000.000000 V
+WIENER-CRATE-MIB::outputConfigMaxTerminalVoltage.u501      ,= .1.3.6.1.4.1.19947.1.3.2.1.22.501 ,= Opaque: Float: 4000.000000 V
+WIENER-CRATE-MIB::outputConfigMaxCurrent.u501              ,= .1.3.6.1.4.1.19947.1.3.2.1.23.501 ,= Opaque: Float: 0.002000 A
+WIENER-CRATE-MIB::outputSupervisionMaxPower.u501           ,= .1.3.6.1.4.1.19947.1.3.2.1.24.501 ,= Opaque: Float: -nan W
+WIENER-CRATE-MIB::outputCurrentRiseRate.u501               ,= .1.3.6.1.4.1.19947.1.3.2.1.25.501 ,= Opaque: Float: 0.001000 A/s
+WIENER-CRATE-MIB::outputCurrentFallRate.u501               ,= .1.3.6.1.4.1.19947.1.3.2.1.26.501 ,= Opaque: Float: 0.001000 A/s
+WIENER-CRATE-MIB::outputTripTimeMaxCurrent.u501            ,= .1.3.6.1.4.1.19947.1.3.2.1.27.501 ,= INTEGER: 500 ms
+WIENER-CRATE-MIB::outputUserConfig.u501                    ,= .1.3.6.1.4.1.19947.1.3.2.1.37.501 ,= INTEGER: 0
+WIENER-CRATE-MIB::outputConfigMaxTemperature.u501          ,= .1.3.6.1.4.1.19947.1.3.2.1.39.501 ,= INTEGER: 127 deg.C
+WIENER-CRATE-MIB::outputResistance.u501                    ,= .1.3.6.1.4.1.19947.1.3.2.1.40.501 ,= Opaque: Float: 0.000000 Ohm
+WIENER-CRATE-MIB::outputTripTimeMinSenseVoltage.u501       ,= .1.3.6.1.4.1.19947.1.3.2.1.41.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripTimeMaxSenseVoltage.u501       ,= .1.3.6.1.4.1.19947.1.3.2.1.42.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripTimeMaxTerminalVoltage.u501    ,= .1.3.6.1.4.1.19947.1.3.2.1.43.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripTimeMaxTemperature.u501        ,= .1.3.6.1.4.1.19947.1.3.2.1.44.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripTimeMaxPower.u501              ,= .1.3.6.1.4.1.19947.1.3.2.1.45.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripTimeTimeout.u501               ,= .1.3.6.1.4.1.19947.1.3.2.1.46.501 ,= INTEGER: 0 ms
+WIENER-CRATE-MIB::outputTripActionMinSenseVoltage.u501     ,= .1.3.6.1.4.1.19947.1.3.2.1.47.501 ,= INTEGER: ignore(0)
+WIENER-CRATE-MIB::outputTripActionMaxSenseVoltage.u501     ,= .1.3.6.1.4.1.19947.1.3.2.1.48.501 ,= INTEGER: ignore(0)
+WIENER-CRATE-MIB::outputTripActionMaxTerminalVoltage.u501  ,= .1.3.6.1.4.1.19947.1.3.2.1.49.501 ,= INTEGER: ignore(0)
+WIENER-CRATE-MIB::outputTripActionMaxCurrent.u501          ,= .1.3.6.1.4.1.19947.1.3.2.1.50.501 ,= INTEGER: channelOff(1)
+WIENER-CRATE-MIB::outputTripActionMaxTemperature.u501      ,= .1.3.6.1.4.1.19947.1.3.2.1.51.501 ,= INTEGER: ignore(0)
+WIENER-CRATE-MIB::outputTripActionMaxPower.u501            ,= .1.3.6.1.4.1.19947.1.3.2.1.52.501 ,= INTEGER: ignore(0)
+WIENER-CRATE-MIB::outputTripActionExternalInhibit.u501     ,= .1.3.6.1.4.1.19947.1.3.2.1.53.501 ,= INTEGER: channelOff(1)
+WIENER-CRATE-MIB::outputTripActionTimeout.u501             ,= .1.3.6.1.4.1.19947.1.3.2.1.54.501 ,= INTEGER: ignore(0)
