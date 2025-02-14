@@ -144,8 +144,8 @@ def set_currents(currents: list[float]):
         print(current)
         command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputCurrent" + chan + " F " + current]
         cmd_result = snmp_command(command)
-        if cmd_result:
-            print(cmd_result.stdout.decode('utf-8'))
+        #if cmd_result:
+        #    print(cmd_result.stdout.decode('utf-8'))
 
 
 def get_voltageRiseRate():
@@ -206,7 +206,8 @@ def get_measuredVoltages():
         list[float]: Measured voltage of each channel in Volt
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options + snmp_comm_read + snmp_host + "outputMeasurementTerminalVoltage.500"]
+    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options \
+               + snmp_comm_read + snmp_host + "outputMeasurementTerminalVoltage.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) for x in cmd_result.stdout.split()]

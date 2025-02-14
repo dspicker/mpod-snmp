@@ -64,7 +64,7 @@ class mpodCli(cmd.Cmd):
         value = [0]*8   # off
         my_netsnmp.set_outputSwitch(value)
         print("Outputs reset and all off.")
-        
+
 
     def do_measurement(self, line: str = None):
         """Measure Currents and Voltages of all eight channels once.

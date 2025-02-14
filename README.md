@@ -31,6 +31,15 @@ Controlling the Wiener MPOD via snmp to perform High-Voltage tests in the lab du
 
 ## How to use
 
+If you haven't just finished installing, first activate the pipenv with `pipenv shell`
+
+There are two main functionalities:
+
+1. Live view of the measurement readings.
+    Start with `python live_view.py`
+2. Command line interface that allows to change settings or switch channels.
+    Start with `python mpod_cli.py`
+
 ## snmp
 
 ``` bash
