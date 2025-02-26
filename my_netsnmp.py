@@ -221,22 +221,22 @@ def get_measuredCurrents():
         list[float]: Measured current of each channel in nano Ampere
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options + snmp_comm_read + snmp_host + "outputMeasurementCurrent.500"]
+    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options \
+               + snmp_comm_read + snmp_host + "outputMeasurementCurrent.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) * 1e9 for x in cmd_result.stdout.split()]
-
-    # Calibration values acquired at 1800 V
-    calibration = [304.46, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, 256.30]
-    calib_result = list()
-    #calib_result = [x - y for x, y in zip(result, calibration)]
-    for res, calib in zip(result, calibration) :
-        if res < calib or res < 0.0 :
-            calib_result.append(0.0)
-        else :
-            calib_result.append(res)
-
-    return calib_result
+    return result
+    # # Calibration values acquired at 1800 V
+    # calibration = [304.46, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, 256.30]
+    # calib_result = list()
+    # #calib_result = [x - y for x, y in zip(result, calibration)]
+    # for res, calib in zip(result, calibration) :
+    #     if res < (calib + 0.5) or res < 0.0 :
+    #         calib_result.append(0.0)
+    #     else :
+    #         calib_result.append(res)
+    # return calib_result
 
 
 def get_status():
@@ -246,11 +246,12 @@ def get_status():
         list[str]: Status description of each channel
     """
     result = None
-    command = ["snmpbulkget " + "-Cr8 -Ov -OU " + snmp_options + snmp_comm_read + snmp_host + "outputStatus.500"]
+    command = ["snmpbulkget " + "-Cr8 " + snmp_options + snmp_comm_read + snmp_host + "outputStatus.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         #print(cmd_result.stdout)
-        result = [ x.strip().split(' ')[-1] for x in cmd_result.stdout.decode().strip('\n').split('\n') ]
+        #result = [ x.strip().split(' ')[-1] for x in cmd_result.stdout.decode().strip('\n').split('\n') ]
+        result = cmd_result.stdout.decode().strip('\n').split('\n')
     return result
 
 
@@ -320,5 +321,8 @@ meas nA    {"  ".join(meas_amps)}
 
 if __name__ == "__main__":
     #set_outputSwitch([0]*8)
-    set_mpod_basic_config()
-    print(show_info())
+    #set_mpod_basic_config()
+    #print(show_info())
+
+    for line in get_status():
+        print(line)
