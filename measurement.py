@@ -52,47 +52,58 @@ def check_csvfile(csv_filename: str):
             csv_file.write("\n")
 
 
-def _measure_continuous(csv_filename = "/home/dspicker/mpod_control/measurement.csv"):
-    """Subthread for continuous measurement
+def _measure_continuous(stop: threading.Event, interval: float):
+    """Subthread for continuous measurement.
+
+    To be called by run_cont_measurement()
 
     Args:
         csv_filename (str, optional): Defaults to "/home/dspicker/mpod_control/measurement.csv".
     """
-    check_csvfile(csv_filename)
+    csv_filename = "cont_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
+    csv_fullpath = os.getcwd() + "/" + csv_filename
+    state = my_netsnmp.get_outputSwitch()
+    if not 'on' in state:
+        print("No channel is on. Switch on at least one channel.")
+        return
+    check_csvfile(csv_fullpath)
 
-    print(f"Starting measurement. \nOutput file: {csv_filename}")
+    print(f"Starting measurement. \nOutput file: {csv_fullpath}")
     index = 0
-    thisthread = threading.current_thread()
-    with open(csv_filename, 'a', newline='', encoding='utf-8') as csv_file:
-        while getattr(thisthread, "keep_going", True):
+    with open(csv_fullpath, 'a', newline='', encoding='utf-8') as csv_file:
+        while not stop.is_set():
             valstrings = get_values(index)
             csv_file.writelines(valstrings)
-            time.sleep(2)
             index += 1
+            stop.wait(interval)
     print("Measurement finished.")
+    return
 
 
-def run_cont_measurement(duration: float = 3.0):
-    """Measure every two seconds for the given duration
+def run_cont_measurement(duration: float = 3.0, interval: float = 2.0):
+    """Measure every n seconds for the given duration
 
     Args:
-        duration (float, optional): Duration of the continuous measurement 
-            in minutes. Defaults to 3.0.
+        duration (float, optional): Duration in minutes. Defaults to 3.0.
+        interval (float, optional): Time between measurements in seconds. Defaults to 2.0.
     """
-    measurement = threading.Thread(target=_measure_continuous)
+    stop_event = threading.Event()
+    measurement = threading.Thread(target=_measure_continuous, args=(stop_event,interval))
+    time_start = time.time()
+    time_stop = time_start + 60.0 * duration
+    print(f"Start time: {time.strftime("%H:%M:%S", time.localtime(time_start))}")
+    print(f"Measuring every {interval} seconds until {time.strftime("%H:%M:%S", time.localtime(time_stop))}")
     try:
         measurement.start()
-        seconds = duration * 60.0
-        loops = 10
-        time.sleep(2)
-        for i in range( loops ):
-            print(f"{((i/loops) * 100):2.0f} % done")
-            time.sleep(seconds/loops)
-        measurement.keep_going = False
-    except KeyboardInterrupt:
-        measurement.keep_going = False
+        while measurement.is_alive() and time.time() < time_stop:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        stop_event.set()
         print("  interrupted  ")
-
+    finally:
+        stop_event.set()
+        measurement.join(3.0)
+        print("Exit.")
 
 def measure_once(csv_filename = "/home/dspicker/mpod_control/measurement.csv") -> list[str]:
     """Get Voltages and Currents from all eight channels of the MPOD
@@ -125,7 +136,8 @@ def _measure_u_i(stop: threading.Event):
     meas_voltages = [1600.0, 1650.0, 1700.0, 1750.0, 1800.0, 1850.0, 1900.0, 1950.0, 1975.0,\
                      2000.0, 2025.0]
 
-    print(f"Starting measurement  {time.strftime("%H:%M", time.localtime())} ")
+    print(f"Starting measurement  {time.strftime("%H:%M", time.localtime())} h")
+    print(f"Output file: {csv_fullpath}")
     print("Using these voltages: ")
     print(meas_voltages)
 
@@ -154,7 +166,7 @@ def run_u_i_measurement():
 
     try:
         measurement.start()
-        while measurement.is_alive(): 
+        while measurement.is_alive():
             time.sleep(1.0) # keep the main thread idling
     except (KeyboardInterrupt, SystemExit):
         stop_event.set()
