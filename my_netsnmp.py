@@ -1,40 +1,54 @@
+"""
+This module provides functions to steer an iseg HV module inside a Wiener-MPOD.
+
+Created by Dennis Spicker 2025
+"""
 import subprocess
 
-snmp_host = "141.2.243.129 "
-snmp_bulk_options = "-Cr8 -Ov -OU -OQ "
+SNMP_HOST = "141.2.243.129 "
+""" The IP address of the MPOD """
+
+SNMP_BULK_OPTIONS = "-Cr8 -Ov -OU -OQ "
 """
--Cr8: Bulk-read 8 repeating variables (currently 8 HV channels).
--Ov:  Display the varbind value only, not the OID.
--OU:  Do not print the UNITS suffix at the end of the value.
+-Cr8: Bulk-read 8 repeating variables (currently 8 HV channels).  
+-Ov:  Display the varbind value only, not the OID.  
+-OU:  Do not print the UNITS suffix at the end of the value.  
 -OQ:  Removes the type information when displaying varbind values.
 """
-snmp_precision = "-Op +020.12 "
+
+SNMP_PRECISION = "-Op +020.12 "
 """
 -Op PRECISION
-    Uses  the  PRECISION string to allow modification of the value output format.  This is used with OPAQUE float/double at
-    the moment, but might be usabe for other types  in  the  future.  Allowed  PRECISION  strings  are  compatible  to  the
+    Uses the PRECISION string to allow modification of the value output format.
+    This is used with OPAQUE float/double at the moment, but might be usabe for 
+    other types in the future. Allowed PRECISION strings are compatible to the
     flag/field with/precision part of the printf(3) function:
+
         `$ snmpget localhost outputVoltage.1`
-        WIENER-CRATE-MIB::outputVoltage.u0 = Opaque: Float: 0.000000 V
+        WIENER-CRATE-MIB:: outputVoltage.u0 = Opaque: Float: 0.000000 V
 
         `$ snmpget -Op +020.12 localhost outputVoltage.1`
-        WIENER-CRATE-MIB::outputVoltage.u0 = Opaque: Float: +000000.000000000000 V
+        WIENER-CRATE-MIB:: outputVoltage.u0 = Opaque: Float: +000000.000000000000 V
 """
-snmp_options = "-v 2c -m +WIENER-CRATE-MIB "
+
+SNMP_OPTIONS = "-v 2c -m +WIENER-CRATE-MIB "
 """
--v 2c: Use snmp protocol version 2c
+-v 2c: Use snmp protocol version 2c  
 -m:    Which MIB file to use. Make sure the file is in /usr/share/snmp/mibs/
 """
-snmp_comm_read = "-c public "
-snmp_comm_write = "-c guru "
 
-hv_module_oid = ".500"
-hv_channels_oids = [".501", ".502", ".503", ".504", ".505", ".506", ".507", ".508"]
+SNMP_COMM_READ = "-c public "
+SNMP_COMM_WRITE = "-c guru "
+
+HV_MODULE_OID = ".500"
+HV_CHANNELS_OIDS = [".501", ".502", ".503", ".504", ".505", ".506", ".507", ".508"]
 
 volt_on      = [100.0] * 8   # 100 V, channel on
 volt_standby = [1000.0] * 8  # 1000 V, detector standby
 volt_amp1    = [1600.0] * 8  # 1600 V, onset of amplification
 volt_amp2    = [1750.0] * 8
+
+DEBUG = False
 
 #"snmpbulkget -Cr8 -Ov -OU -OQ -v 2c -m +WIENER-CRATE-MIB -c public 141.2.243.129 outputVoltage.500"
 
@@ -44,8 +58,9 @@ def snmp_command(command: list[str]):
 
     Args:
         command (list[str]): The complete snmp bash command. 
-            e.g. to get all preset output voltages:
-            `snmpbulkget -Cr8 -Ov -OU -OQ -v 2c -m +WIENER-CRATE-MIB -c public 141.2.243.129 outputVoltage.500`
+        E.g. to get all preset output voltages:
+        `$ snmpbulkget -Cr8 -Ov -OU -OQ -v 2c -m +WIENER-CRATE-MIB -c public 
+        141.2.243.129 outputVoltage.500`
 
     Returns:
         subprocess.CompletedProcess: Result of the snmp query as subprocess object.
@@ -61,7 +76,7 @@ def snmp_command(command: list[str]):
             #text=True
             )
     except subprocess.CalledProcessError as exc:
-        if not isTooBigError(exc):
+        if not is_too_big_error(exc):
             print(f"Error!\n{exc}\n")
             print(exc.stderr.decode('utf-8'))
     except subprocess.TimeoutExpired as exc:
@@ -69,7 +84,7 @@ def snmp_command(command: list[str]):
     return sp_result
 
 
-def isTooBigError(exception: subprocess.CalledProcessError) -> bool:
+def is_too_big_error(exception: subprocess.CalledProcessError) -> bool:
     """Helper for snmp_command. Silences "tooBig" errors from snmp agent.
 
     Args:
@@ -92,12 +107,14 @@ def get_voltages():
         list[float]: The nominal output voltage of each channel
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_options + snmp_comm_read + snmp_host + "outputVoltage.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS +\
+               SNMP_COMM_READ + SNMP_HOST + "outputVoltage.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) for x in cmd_result.stdout.split()]
-        #print(cmd_result.stdout.decode('utf-8'))
-        #print(result)
+        if DEBUG:
+            print(command)
+            print(cmd_result.stdout.decode('utf-8'), end='')
     return result
 
 
@@ -108,13 +125,17 @@ def set_voltages(voltages: list[float]):
         voltages (list[float]): The nominal output voltage of each channel
     """
     for i, x in enumerate(voltages):
-        if i >= len(hv_channels_oids): break
-        chan = hv_channels_oids[i]
+        if i >= len(HV_CHANNELS_OIDS):
+            break
+        chan = HV_CHANNELS_OIDS[i]
         voltage = str(x)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputVoltage" + chan + " F " + voltage]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + "outputVoltage"\
+                   + chan + " F " + voltage]
         cmd_result = snmp_command(command)
-        #if cmd_result:
-        #    print(cmd_result.stdout.decode('utf-8'))
+        if DEBUG:
+            print(command)
+            if cmd_result:
+                print(cmd_result.stdout.decode('utf-8'), end='')
 
 
 def get_currents():
@@ -124,7 +145,8 @@ def get_currents():
         (list[float]): The current limit of each channel in micro ampere
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_options + snmp_comm_read + snmp_host + "outputCurrent.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST\
+               + "outputCurrent.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ (float(x.decode()) * 1e6) for x in cmd_result.stdout.split()]
@@ -138,17 +160,21 @@ def set_currents(currents: list[float]):
         currents (list[float]): The current limit of each channel in micro ampere
     """
     for i, x in enumerate(currents):
-        if i >= len(hv_channels_oids): break
-        chan = hv_channels_oids[i]
+        if i >= len(HV_CHANNELS_OIDS):
+            break
+        chan = HV_CHANNELS_OIDS[i]
         current = str(x * 1e-6)
         print(current)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputCurrent" + chan + " F " + current]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + "outputCurrent"\
+                   + chan + " F " + current]
         cmd_result = snmp_command(command)
-        #if cmd_result:
-        #    print(cmd_result.stdout.decode('utf-8'))
+        if DEBUG:
+            print(command)
+            if cmd_result:
+                print(cmd_result.stdout.decode('utf-8'), end='')
 
 
-def get_voltageRiseRate():
+def get_riserate_voltage():
     """Get the voltage rise rate of all HV channels
 
     Returns:
@@ -156,31 +182,38 @@ def get_voltageRiseRate():
                     (after switch on or if the Voltage has been changed)
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_options + snmp_comm_read + snmp_host + "outputVoltageRiseRate.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST \
+               + "outputVoltageRiseRate.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) for x in cmd_result.stdout.split()]
     return result
 
 
-def get_outputSwitch():
+def get_output_switch():
     """Get the switch state of all HV channels
 
     Returns:
         list[str]: An enumerated value which shows the current state of the output channel
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_options + snmp_comm_read + snmp_host + "outputSwitch.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST \
+               + "outputSwitch.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
-        #result = [ f"Ch {i}: {x.decode()}" for i, x in enumerate(cmd_result.stdout.split())]
-        result = [ x.decode() for  x in cmd_result.stdout.split() ]
-        #print(cmd_result.stdout.decode('utf-8'))
-        #for chan in result: print(chan)
+        result = [ x.decode() for x in cmd_result.stdout.split() ]
+    if DEBUG:
+        print(command)
+        if cmd_result:
+            #print(cmd_result.stdout.decode('utf-8'), end='')
+            debug_result = \
+                [ f"Ch {i}: {x.decode()}" for i, x in enumerate(cmd_result.stdout.split())]
+            for chan in debug_result: 
+                print(chan)
     return result
 
 
-def set_outputSwitch(states: list[int]):
+def set_output_switch(states: list[int]):
     """Switch HV channels on or off
 
     Args:
@@ -192,37 +225,42 @@ def set_outputSwitch(states: list[int]):
     before the voltage can ramp up again
     """
     for i, x in enumerate(states):
-        if i >= len(hv_channels_oids): break
-        chan = hv_channels_oids[i]
+        if i >= len(HV_CHANNELS_OIDS): break
+        chan = HV_CHANNELS_OIDS[i]
         state = str(x)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputSwitch" + chan + " i " + state]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + "outputSwitch" \
+                   + chan + " i " + state]
         cmd_result = snmp_command(command)
+        if DEBUG:
+            print(command)
+            if cmd_result:
+                print(cmd_result.stdout.decode('utf-8'), end='')
 
 
-def get_measuredVoltages():
+def get_measured_voltages():
     """Get measured terminal voltages of all HV channels
 
     Returns:
         list[float]: Measured voltage of each channel in Volt
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options \
-               + snmp_comm_read + snmp_host + "outputMeasurementTerminalVoltage.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS \
+               + SNMP_COMM_READ + SNMP_HOST + "outputMeasurementTerminalVoltage.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) for x in cmd_result.stdout.split()]
     return result
 
 
-def get_measuredCurrents():
+def get_measured_currents():
     """Get measured currents of all HV channels
 
     Returns:
         list[float]: Measured current of each channel in nano Ampere
     """
     result = None
-    command = ["snmpbulkget " + snmp_bulk_options + snmp_precision + snmp_options \
-               + snmp_comm_read + snmp_host + "outputMeasurementCurrent.500"]
+    command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS \
+               + SNMP_COMM_READ + SNMP_HOST + "outputMeasurementCurrent.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         result = [ float(x.decode()) * 1e9 for x in cmd_result.stdout.split()]
@@ -246,11 +284,13 @@ def get_status():
         list[str]: Status description of each channel
     """
     result = None
-    command = ["snmpbulkget " + "-Cr8 " + snmp_options + snmp_comm_read + snmp_host + "outputStatus.500"]
+    command = ["snmpbulkget " + "-Cr8 " + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST \
+               + "outputStatus.500"]
     cmd_result = snmp_command(command)
     if cmd_result:
         #print(cmd_result.stdout)
-        #result = [ x.strip().split(' ')[-1] for x in cmd_result.stdout.decode().strip('\n').split('\n') ]
+        # result = [ x.strip().split(' ')[-1] for x in \
+        #           cmd_result.stdout.decode().strip('\n').split('\n') ]
         result = cmd_result.stdout.decode().strip('\n').split('\n')
     return result
 
@@ -258,22 +298,27 @@ def get_status():
 def set_mpod_basic_config():
     """Send some basic configuration values to the MPOD
     """
-    nCh = len(hv_channels_oids)
-    voltageRiseRate = [40.0]*nCh # 40 V/s
-    voltageFallRate = [40.0]*nCh
-    supervisionMaxCurrent = [3000*1e-9]*nCh  # 3000 nA
-    tripTimeMaxCurrent = [100]*nCh # 100 ms
-    tripActionMaxCurrent = [1]*nCh # 1: switch off this channel by ramp down the voltage
-    for i, chan in enumerate(hv_channels_oids):
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputVoltageRiseRate" + chan + " F " + str(voltageRiseRate[i])]
+    num_channels = len(HV_CHANNELS_OIDS)
+    voltage_rise_rate = [40.0]*num_channels # 40 V/s
+    voltage_fall_rate = [40.0]*num_channels
+    supervision_max_current = [3000*1e-9]*num_channels  # 3000 nA
+    trip_time_max_current = [100]*num_channels # 100 ms
+    trip_action_max_current = [1]*num_channels # 1: switch off this channel by ramp down the voltage
+    for i, chan in enumerate(HV_CHANNELS_OIDS):
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + \
+                   "outputVoltageRiseRate" + chan + " F " + str(voltage_rise_rate[i])]
         snmp_command(command)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputVoltageFallRate" + chan + " F " + str(voltageFallRate[i])]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + \
+                   "outputVoltageFallRate" + chan + " F " + str(voltage_fall_rate[i])]
         snmp_command(command)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputSupervisionMaxCurrent" + chan + " F " + str(supervisionMaxCurrent[i])]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + \
+                   "outputSupervisionMaxCurrent" + chan + " F " + str(supervision_max_current[i])]
         snmp_command(command)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputTripTimeMaxCurrent" + chan + " i " + str(tripTimeMaxCurrent[i])]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + \
+                   "outputTripTimeMaxCurrent" + chan + " i " + str(trip_time_max_current[i])]
         snmp_command(command)
-        command = ["snmpset " + snmp_options + snmp_comm_write + snmp_host + "outputTripActionMaxCurrent" + chan + " i " + str(tripActionMaxCurrent[i])]
+        command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + \
+                   "outputTripActionMaxCurrent" + chan + " i " + str(trip_action_max_current[i])]
         snmp_command(command)
 
 
@@ -281,26 +326,28 @@ def show_info():
     """Generate info summary string
     """
     title = [ f"Ch{x:02d}  " for x in range(1,9)]
-    switch = [ f"{x:<6}" for x in get_outputSwitch() ]
+    switch = [ f"{x:<6}" for x in get_output_switch() ]
     volts = [ f"{x:6.1f}" for x in get_voltages() ]
-    volt_rise = [ f"{x:6.1f}" for x in get_voltageRiseRate() ]
+    volt_rise = [ f"{x:6.1f}" for x in get_riserate_voltage() ]
     amps = [ f"{x:6.1f}" for x in get_currents() ]
-    #meas_volts = [ f"{x:6.1f}" for x in get_measuredVoltages() ]
-    #meas_amps = [ f"{x:6.1f}" for x in get_measuredCurrents() ]
+    #meas_volts = [ f"{x:6.1f}" for x in get_measured_voltages() ]
+    #meas_amps = [ f"{x:6.1f}" for x in get_measured_currents() ]
     out_string = f'''Value      {"  ".join(title)}
 -------------------------------------------------------------------------
 Switch     {"  ".join(switch)}
 set Volts  {"  ".join(volts)}
 riseRate V {"  ".join(volt_rise)}
 set uAmps  {"  ".join(amps)}'''
-    
+
     #meas V     {"  ".join(meas_volts)}
     #meas nA    {"  ".join(meas_amps)}
     return out_string
 
 def show_amp_meas():
-    meas_amps = [ f"{x:6.1f}" for x in get_measuredCurrents() ]
-    meas_volts = [ f"{x:6.1f}" for x in get_measuredVoltages() ]
+    """Generate info summary string
+    """
+    meas_amps = [ f"{x:6.1f}" for x in get_measured_currents() ]
+    meas_volts = [ f"{x:6.1f}" for x in get_measured_voltages() ]
     out_string = f'''meas V     {"  ".join(meas_volts)}
 meas nA    {"  ".join(meas_amps)}
 '''
@@ -311,8 +358,8 @@ meas nA    {"  ".join(meas_amps)}
 #res = get_voltages()
 #for volt in res: print(volt)
 #
-#set_outputSwitch([0]*8)
-#switch = get_outputSwitch()
+#set_output_switch([0]*8)
+#switch = get_output_switch()
 #for chan in switch: print(chan)
 #set_currents([4.0]*8)
 #
@@ -320,9 +367,11 @@ meas nA    {"  ".join(meas_amps)}
 #for volt in res: print(volt)
 
 if __name__ == "__main__":
-    #set_outputSwitch([0]*8)
+    #set_output_switch([0]*8)
     #set_mpod_basic_config()
     #print(show_info())
 
-    for line in get_status():
-        print(line)
+    #for line in get_status():
+    #    print(line)
+
+    set_voltages(volt_on)

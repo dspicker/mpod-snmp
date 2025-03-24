@@ -19,8 +19,8 @@ def get_values(print_idx = 0):
     """
     output = list()
     time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    voltages = my_netsnmp.get_measuredVoltages()
-    currents = my_netsnmp.get_measuredCurrents()
+    voltages = my_netsnmp.get_measured_voltages()
+    currents = my_netsnmp.get_measured_currents()
     for volt, nanoamp, channel in zip(voltages, currents, range(15)):
         result = f"{print_idx: 5d} ,{time_str}, {channel: 7d}, {volt: 8.2f}, {nanoamp: 10.2f}\n"
         output.append(result)
@@ -62,7 +62,7 @@ def _measure_continuous(stop: threading.Event, interval: float):
     """
     csv_filename = "cont_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
     csv_fullpath = os.getcwd() + "/" + csv_filename
-    state = my_netsnmp.get_outputSwitch()
+    state = my_netsnmp.get_output_switch()
     if not 'on' in state:
         print("No channel is on. Switch on at least one channel.")
         return
@@ -127,7 +127,7 @@ def _measure_u_i(stop: threading.Event):
     csv_fullpath = os.getcwd() + "/" + csv_filename
     wait_sec = 90.0
 
-    state = my_netsnmp.get_outputSwitch()
+    state = my_netsnmp.get_output_switch()
     if not 'on' in state:
         print("No channel is on. Switch on at least one channel.")
         return
@@ -173,7 +173,7 @@ def run_u_i_measurement():
         print("  interrupted  ")
     finally:
         measurement.join(1.0)
-        my_netsnmp.set_outputSwitch( [0]*8 )
+        my_netsnmp.set_output_switch( [0]*8 )
         my_netsnmp.set_voltages( [1000.0]*8 )
         print("Exit.")
 

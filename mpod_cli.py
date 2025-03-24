@@ -44,25 +44,25 @@ class mpodCli(cmd.Cmd):
         if line:
             input = line.split()
             if len(input) > 1:
-                state = my_netsnmp.get_outputSwitch()
+                state = my_netsnmp.get_output_switch()
                 state = [ values[x] for x in state ]
                 state[int(input[1])-1] = values[input[0]]
             else:
                 state = [values[input[0]]]*8
-            my_netsnmp.set_outputSwitch(state)
-        switchget = my_netsnmp.get_outputSwitch()
+            my_netsnmp.set_output_switch(state)
+        switchget = my_netsnmp.get_output_switch()
         for i, v in enumerate(switchget):
             print(f"Ch {i+1}: {v:<6}")
 
     def do_reset_outputs(self, line):
         value = [0]*8   # off
-        my_netsnmp.set_outputSwitch(value)
+        my_netsnmp.set_output_switch(value)
         value = [2]*8   # resetEmergencyOff
-        my_netsnmp.set_outputSwitch(value)
+        my_netsnmp.set_output_switch(value)
         value = [10]*8  # clearEvents
-        my_netsnmp.set_outputSwitch(value)
+        my_netsnmp.set_output_switch(value)
         value = [0]*8   # off
-        my_netsnmp.set_outputSwitch(value)
+        my_netsnmp.set_output_switch(value)
         print("Outputs reset and all off.")
 
 

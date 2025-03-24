@@ -1,10 +1,14 @@
+"""
+This module can be used to plot data that was acquired with measurement.py
+"""
+import sys
+import os
 import matplotlib.dates
 import matplotlib.ticker
 import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib
-import sys
-import os
+
 
 matplotlib.use('tkagg')
 
@@ -28,10 +32,11 @@ def calc_mean_currents(_csv_path: str):
 
 
 def calib_func(row):
-    calibration = [304.46, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, 256.30]
+    #calibration = [304.46, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, 256.30]
+    calibration = [-14.90, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, -15.25] # für mix.csv
     #return row["Current nA"] - calibration[int(row["Channel"])]
-    #if ( row["Current nA"] < (calibration[int(row["Channel"])]+0.1 ) ) or row["Current nA"] < 0.0 :
-    #    return 0.0
+    if ( row["Current nA"] < (calibration[int(row["Channel"])]+0.1 ) ) or row["Current nA"] < 0.0 :
+        return 0.0
     return row["Current nA"]
 
 
