@@ -215,7 +215,7 @@ def get_output_switch():
             #print(cmd_result.stdout.decode('utf-8'), end='')
             debug_result = \
                 [ f"Ch {i}: {x.decode()}" for i, x in enumerate(cmd_result.stdout.split())]
-            for chan in debug_result: 
+            for chan in debug_result:
                 print(chan)
     return result
 
@@ -341,7 +341,7 @@ def show_info():
     """Generate info summary string
     """
     title = [ f"Ch{x:02d}  " for x in range(1,9)]
-    switch = [ f"{x:<6}" for x in get_output_switch() ]
+    state = [ f"{x:<6}" for x in get_output_switch() ]
     volts = [ f"{x:6.1f}" for x in get_voltages() ]
     volt_rise = [ f"{x:6.1f}" for x in get_riserate_voltage() ]
     amps = [ f"{x:6.1f}" for x in get_currents() ]
@@ -349,7 +349,7 @@ def show_info():
     #meas_amps = [ f"{x:6.1f}" for x in get_measured_currents() ]
     out_string = f'''Value      {"  ".join(title)}
 -------------------------------------------------------------------------
-Switch     {"  ".join(switch)}
+Switch     {"  ".join(state)}
 set Volts  {"  ".join(volts)}
 riseRate V {"  ".join(volt_rise)}
 set uAmps  {"  ".join(amps)}'''
