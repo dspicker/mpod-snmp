@@ -25,7 +25,12 @@ def get_values(print_idx = 0):
         result = f"{print_idx: 5d} ,{time_str}, {channel: 7d}, {volt: 8.2f}, {nanoamp: 10.2f}\n"
         output.append(result)
         #print(result, end='')
-    #print(" ")
+    
+    volt = my_netsnmp.get_win_meas_volt()[0]
+    nanoamp = my_netsnmp.get_win_meas_curr()[0]
+    win_result = f"{print_idx: 5d} ,{time_str},      99, {volt: 8.2f}, {nanoamp: 10.2f}\n"
+    output.append(win_result)
+    
     return output
 
 
@@ -58,7 +63,8 @@ def _measure_continuous(stop: threading.Event, interval: float):
     To be called by run_cont_measurement()
 
     Args:
-        csv_filename (str, optional): Defaults to "/home/dspicker/mpod_control/measurement.csv".
+        stop (threading.Event): Controls the thread.
+        interval (float): Time between Datapoints in seconds.
     """
     csv_filename = "cont_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
     csv_fullpath = os.getcwd() + "/" + csv_filename
@@ -105,17 +111,20 @@ def run_cont_measurement(duration: float = 3.0, interval: float = 2.0):
         measurement.join(3.0)
         print("Exit.")
 
-def measure_once(csv_filename = "/home/dspicker/mpod_control/measurement.csv") -> list[str]:
+def measure_once(csv_filename: str = None) -> list[str]:
     """Get Voltages and Currents from all eight channels of the MPOD
 
     Args:
         csv_filename (str, optional): File to save the result to. 
-            Defaults to "/home/dspicker/mpod_control/measurement.csv".
+            Defaults to "pwd/m_YY_mm_dd_HH_MM.csv".
 
     Returns:
         list[str]: csv formatted measurement values as they are written to the file.
     """
-    check_csvfile(csv_filename)
+    if not csv_filename:
+        csv_filename = "m_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
+    csv_fullpath = os.getcwd() + "/" + csv_filename
+    check_csvfile(csv_fullpath)
     with open(csv_filename, 'a', newline='', encoding='utf-8') as csv_file:
         valstrings = get_values()
         csv_file.writelines(valstrings)
@@ -125,9 +134,9 @@ def measure_once(csv_filename = "/home/dspicker/mpod_control/measurement.csv") -
 def _measure_u_i(stop: threading.Event):
     csv_filename = "m_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
     csv_fullpath = os.getcwd() + "/" + csv_filename
-    wait_sec = 90.0
+    wait_sec = 60.0
 
-    state = my_netsnmp.get_output_switch()
+    state = my_netsnmp.get_output_switch() + my_netsnmp.get_win_output_switch()
     if not 'on' in state:
         print("No channel is on. Switch on at least one channel.")
         return
@@ -135,11 +144,14 @@ def _measure_u_i(stop: threading.Event):
 
     meas_voltages = [1600.0, 1650.0, 1700.0, 1750.0, 1800.0, 1850.0, 1900.0, 1950.0, 1975.0,\
                      2000.0, 2025.0]
+    #meas_voltages = [100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0, \
+    #                 1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1550.0, 1600.0, 1650.0, 1700.0]
 
     print(f"Starting measurement  {time.strftime("%H:%M", time.localtime())} h")
     print(f"Output file: {csv_fullpath}")
     print("Using these voltages: ")
     print(meas_voltages)
+    print(f"Estimated duration {(len(meas_voltages) * wait_sec)/60.0} minutes.")
 
     for idx, voltage in enumerate(meas_voltages):
         set_volt = [ voltage if ch == "on" else 0.0 for ch in state ]
@@ -174,12 +186,12 @@ def run_u_i_measurement():
     finally:
         measurement.join(1.0)
         my_netsnmp.set_output_switch( [0]*8 )
-        my_netsnmp.set_voltages( [1000.0]*8 )
+        my_netsnmp.set_voltages( [100.0]*8 )
         print("Exit.")
 
 
 if __name__ == "__main__":
     #print(f"Index, {"Time".ljust(19)}, Channel, Voltage, Current nA\n")
     #get_values()
-    #run_cont_measurement()
-    run_u_i_measurement()
+    run_cont_measurement(150.0)
+    #run_u_i_measurement()

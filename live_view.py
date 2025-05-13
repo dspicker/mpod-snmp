@@ -1,7 +1,15 @@
+"""
+This module implements a live view of data from the mpod, using curses.
+"""
 import curses
 import my_netsnmp
 
 def draw_table(stdscr):
+    """Main loop function to be called by curses wrapper
+
+    Args:
+        stdscr : The terminal in which curses is running and showing its output.
+    """
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     if curses.can_change_color():
@@ -32,7 +40,8 @@ def draw_table(stdscr):
             user_input = stdscr.getkey()
         except curses.error:
             pass
-        if user_input == "q": do_exit = True
+        if user_input == "q":
+            do_exit = True
 
         loop_cnt += 1
         curses.napms(1000)

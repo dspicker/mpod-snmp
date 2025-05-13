@@ -33,32 +33,52 @@ def calc_mean_currents(_csv_path: str):
 
 def calib_func(row):
     #calibration = [304.46, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, 256.30]
-    calibration = [-14.90, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, -15.25] # für mix.csv
+    #calibration = [-14.90, -14.90, 161.14, 150.04, -15.25, 187.31, 44.90, -15.25] # für mix.csv
     #return row["Current nA"] - calibration[int(row["Channel"])]
-    if ( row["Current nA"] < (calibration[int(row["Channel"])]+0.1 ) ) or row["Current nA"] < 0.0 :
-        return 0.0
+    #if ( row["Current nA"] < (calibration[int(row["Channel"])]+0.1 ) ) or row["Current nA"] < 0.0 :
+    #    return 0.0
     return row["Current nA"]
 
 
 def plot_u_i(_csv_path: str):
     csv_data = get_data_from_csv(_csv_path)
-    csv_data["calib Current"] = csv_data.apply(calib_func, axis=1)
+    #csv_data["calib Current"] = csv_data.apply(calib_func, axis=1)
     
-    data_ch = list()
-    for i in range(8):
-        #data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["Current nA"] > 1.0) ] )
-        data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["calib Current"] > 0.0)] )
-        #plt.plot(data_ch[i]["Voltage"], data_ch[i]["Current nA"], 'o:', label=str(f"Ch {i}"))
-        plt.plot(data_ch[i]["Voltage"], data_ch[i]["calib Current"], 'o:', label=str(f"Ch {i}"))
+    fig, ax = plt.subplots()
 
-    plt.title('HV Test')
-    plt.xlabel('Voltage / V')
-    plt.ylabel('Current / nA')
-    plt.grid(True)
+    # --- Plot each channel ---
+    data_ch = None
+    for i in range(8):
+        data_ch = csv_data.loc[ (csv_data["Channel"] == i) ]
+        #data_ch = csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["calib Current"] > 0.0)]
+        ax.plot(data_ch["Voltage"], data_ch["Current nA"], 'o:', label=str(f"Ch {i}"))
+
+    # --- Plot Sum of all channels ---
+    df_sum = csv_data.copy()
+    #df_sum.loc[ (df_sum["Channel"] == 99), "Current nA" ] = df_sum.loc[ (df_sum["Channel"] == 99), "Current nA" ].abs()
+    #df_sum = df_sum[["Index","Current nA"]].groupby("Index").sum()
+    df_sum = df_sum.loc[ (df_sum["Channel"] != 99) & (df_sum["Current nA"] >= 0.0) ][["Index","Current nA"]].groupby("Index").sum()
+    df_sum["Anode Voltage"] = data_ch["Voltage"].values
+    ax.plot(df_sum["Anode Voltage"], df_sum["Current nA"].abs(), '.', label=str("Sum Ch 0-7"))
+
+    # --- Plot window current with corresponding anode voltage ---
+    data_win = csv_data.loc[ (csv_data["Channel"] == 99) ]
+    data_win["Anode Voltage"] = data_ch["Voltage"].values
+    ax.plot(data_win["Anode Voltage"], data_win["Current nA"].abs(), 'x:', label=str("Window (neg.)"))
+
+    # --- Make it look nice ---
+    ax.set_title('HV Test')
+    ax.set_xlabel('Anode Voltage / V')
+    ax.set_ylabel('Current / nA')
+    ax.grid(True)
+    ax.grid(visible=True, which="minor", axis="y", linestyle=":", alpha=0.5)
+    ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(200.0))
+    ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
     #plt.yscale("log")
-    plt.legend()
-    plt.xlim((1600.0, 2050.0))
-    plt.ylim((-20.0, 1800.0))
+    ax.legend()
+    y_max = csv_data["Current nA"].max()
+    ax.set_xlim((1590.0, 2050.0))
+    ax.set_ylim((-20.0, y_max+50))
     plt.show()
 
 
@@ -75,8 +95,14 @@ def plot_t_i(_csv_path: str):
     data_ch = list()
     for i in range(8):
         #data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["Current nA"] > 1.0) ] )
-        data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) ] )
-        ax.plot(data_ch[i]["Timedelta"], data_ch[i]["Current nA"], '.', label=str(f"Ch {i}"))
+        data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["Timedelta"] > 2) ] )
+        #data_ch.append(csv_data.loc[ (csv_data["Channel"] == i) ] )
+        ax.plot(data_ch[i]["Timedelta"], data_ch[i]["Current nA"], '-', label=str(f"Ch {i}"))
+
+    # --- Plot window current with corresponding anode voltage ---
+    data_win = csv_data.loc[ (csv_data["Channel"] == 99) ]
+    #data_win["Anode Voltage"] = data_ch["Voltage"].values
+    ax.plot(data_win["Timedelta"], data_win["Current nA"].abs(), '-', label=str("Window (neg.)"))
 
     #ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%M:%S"))
     #locator = matplotlib.ticker.LinearLocator(10)
@@ -87,6 +113,11 @@ def plot_t_i(_csv_path: str):
     ax.set_ylabel('Current / nA')
     ax.legend()
     ax.grid(True)
+    ax.grid(visible=True, which="minor", axis="y", linestyle="-", alpha=0.4)
+    #ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(200.0))
+    ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
+    #ax.set_xlim((0.0, 270.0))
+    #ax.set_ylim((-20.0, 1800.0))
     #fig.autofmt_xdate()
     plt.show()
 
@@ -154,9 +185,9 @@ if __name__ == "__main__":
     if not csv_filename:
         sys.exit()
     csv_path = os.getcwd() + "/" + csv_filename
-    plot_u_i(csv_path)
-
-    #plot_t_i(csv_path)
+    
+    #plot_u_i(csv_path)
+    plot_t_i(csv_path)
     
     #channelnum = int( sys.argv[1] )
     #compare_channel(channelnum)
