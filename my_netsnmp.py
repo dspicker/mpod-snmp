@@ -126,7 +126,7 @@ def get_voltages():
     Returns:
         list[float]: The nominal output voltage of each channel
     """
-    result = None
+    result = list()
     variable_oid = "outputVoltage"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS +\
                SNMP_COMM_READ + SNMP_HOST + variable_oid + HV_MODULE_OID]
@@ -140,7 +140,7 @@ def get_voltages():
 
 
 def get_win_voltage():
-    result = None
+    result = list()
     variable_oid = "outputVoltage"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + SNMP_OPTIONS +\
                SNMP_COMM_READ + SNMP_HOST + variable_oid + WIN_CHANNEL_OID]
@@ -191,7 +191,7 @@ def get_currents():
     Returns:
         (list[float]): The current limit of each channel in micro ampere
     """
-    result = None
+    result = list()
     variable_oid = "outputCurrent"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + "-Op 11.7 " + SNMP_OPTIONS + \
                SNMP_COMM_READ + SNMP_HOST + variable_oid + HV_MODULE_OID ]
@@ -205,7 +205,7 @@ def get_currents():
 
 
 def get_win_current():
-    result = None
+    result = list()
     variable_oid = "outputCurrent"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + "-Op 11.7 " + SNMP_OPTIONS + \
                SNMP_COMM_READ + SNMP_HOST + variable_oid + WIN_CHANNEL_OID ]
@@ -258,7 +258,7 @@ def get_riserate_voltage():
         list[float]: The slew rate of each output voltage if it increases, in V/s
                     (after switch on or if the Voltage has been changed)
     """
-    result = None
+    result = list()
     variable_oid = "outputVoltageRiseRate"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST + \
                variable_oid + HV_MODULE_OID]
@@ -269,7 +269,7 @@ def get_riserate_voltage():
 
 
 def get_win_riserate_volt():
-    result = None
+    result = list()
     variable_oid = "outputVoltageRiseRate"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST + \
                variable_oid + WIN_CHANNEL_OID]
@@ -285,7 +285,7 @@ def get_output_switch():
     Returns:
         list[str]: An enumerated value which shows the current state of the output channel
     """
-    result = None
+    result = list()
     variable_oid = "outputSwitch"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST + \
                variable_oid + HV_MODULE_OID]
@@ -304,7 +304,7 @@ def get_output_switch():
 
 
 def get_win_output_switch():
-    result = None
+    result = list()
     variable_oid = "outputSwitch"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + SNMP_OPTIONS + SNMP_COMM_READ + SNMP_HOST + \
                variable_oid + WIN_CHANNEL_OID]
@@ -346,6 +346,10 @@ def set_win_output_switch(state: int):
     command = ["snmpset " + SNMP_OPTIONS + SNMP_COMM_WRITE + SNMP_HOST + variable_oid + \
                 WIN_CHANNEL_OID + " i " + state_str]
     cmd_result = snmp_command(command)
+    if DEBUG:
+        print(command)
+        if cmd_result:
+            print(cmd_result.stdout.decode('utf-8'), end='')
 
 
 def get_measured_voltages():
@@ -354,7 +358,7 @@ def get_measured_voltages():
     Returns:
         list[float]: Measured voltage of each channel in Volt
     """
-    result = None
+    result = list()
     variable_oid = "outputMeasurementTerminalVoltage"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS \
                + SNMP_COMM_READ + SNMP_HOST + variable_oid + HV_MODULE_OID]
@@ -365,7 +369,7 @@ def get_measured_voltages():
 
 
 def get_win_meas_volt():
-    result = None
+    result = list()
     variable_oid = "outputMeasurementTerminalVoltage"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS \
                + SNMP_COMM_READ + SNMP_HOST + variable_oid + WIN_CHANNEL_OID]
@@ -381,7 +385,7 @@ def get_measured_currents():
     Returns:
         list[float]: Measured current of each channel in nano Ampere
     """
-    result = None
+    result = list()
     variable_oid = "outputMeasurementCurrent"
     command = ["snmpbulkget " + SNMP_BULK_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS + \
                SNMP_COMM_READ + SNMP_HOST + variable_oid + HV_MODULE_OID]
@@ -402,7 +406,7 @@ def get_measured_currents():
 
 
 def get_win_meas_curr():
-    result = None
+    result = list()
     variable_oid = "outputMeasurementCurrent"
     command = ["snmpget " + SNMP_OUTPUT_OPTIONS + SNMP_PRECISION + SNMP_OPTIONS + \
                SNMP_COMM_READ + SNMP_HOST + variable_oid + WIN_CHANNEL_OID]

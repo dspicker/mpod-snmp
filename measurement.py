@@ -76,12 +76,12 @@ def _measure_continuous(stop: threading.Event, interval: float):
 
     print(f"Starting measurement. \nOutput file: {csv_fullpath}")
     index = 0
-    with open(csv_fullpath, 'a', newline='', encoding='utf-8') as csv_file:
-        while not stop.is_set():
-            valstrings = get_values(index)
+    while not stop.is_set():
+        valstrings = get_values(index)
+        with open(csv_fullpath, 'a', newline='', encoding='utf-8') as csv_file:
             csv_file.writelines(valstrings)
-            index += 1
-            stop.wait(interval)
+        index += 1
+        stop.wait(interval)
     print("Measurement finished.")
     return
 
@@ -97,8 +97,8 @@ def run_cont_measurement(duration: float = 3.0, interval: float = 2.0):
     measurement = threading.Thread(target=_measure_continuous, args=(stop_event,interval))
     time_start = time.time()
     time_stop = time_start + 60.0 * duration
-    print(f"Start time: {time.strftime("%H:%M:%S", time.localtime(time_start))}")
-    print(f"Measuring every {interval} seconds until {time.strftime("%H:%M:%S", time.localtime(time_stop))}")
+    print(f"Start time: {time.strftime("%a, %H:%M:%S", time.localtime(time_start))}")
+    print(f"Measuring every {interval} seconds until {time.strftime("%a, %H:%M:%S", time.localtime(time_stop))}")
     try:
         measurement.start()
         while measurement.is_alive() and time.time() < time_stop:
@@ -111,18 +111,32 @@ def run_cont_measurement(duration: float = 3.0, interval: float = 2.0):
         measurement.join(3.0)
         print("Exit.")
 
-def measure_once(csv_filename: str = None) -> list[str]:
+
+def run_long_measurement():
+    hours = 24.0
+    interval = 15.0
+
+    minutes = hours * 60.0
+
+    run_cont_measurement(minutes, interval)
+
+    my_netsnmp.set_output_switch( [0]*8 )
+    my_netsnmp.set_win_output_switch(0)
+    print("Long measurement finished. HV switched off.")
+
+
+def measure_once(csv_filename: str = "") -> list[str]:
     """Get Voltages and Currents from all eight channels of the MPOD
 
     Args:
         csv_filename (str, optional): File to save the result to. 
-            Defaults to "pwd/m_YY_mm_dd_HH_MM.csv".
+            Defaults to "pwd/single_YY_mm_dd_HH_MM.csv".
 
     Returns:
         list[str]: csv formatted measurement values as they are written to the file.
     """
     if not csv_filename:
-        csv_filename = "m_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
+        csv_filename = "single_" + time.strftime("%Y_%m_%d_%H_%M", time.localtime()) + ".csv"
     csv_fullpath = os.getcwd() + "/" + csv_filename
     check_csvfile(csv_fullpath)
     with open(csv_filename, 'a', newline='', encoding='utf-8') as csv_file:
@@ -137,7 +151,7 @@ def _measure_u_i(stop: threading.Event):
     wait_sec = 60.0
 
     state = my_netsnmp.get_output_switch() + my_netsnmp.get_win_output_switch()
-    if not 'on' in state:
+    if 'on' not in state:
         print("No channel is on. Switch on at least one channel.")
         return
     check_csvfile(csv_fullpath)
@@ -193,5 +207,6 @@ def run_u_i_measurement():
 if __name__ == "__main__":
     #print(f"Index, {"Time".ljust(19)}, Channel, Voltage, Current nA\n")
     #get_values()
-    run_cont_measurement(150.0)
+    #run_cont_measurement(150.0)
     #run_u_i_measurement()
+    run_long_measurement()

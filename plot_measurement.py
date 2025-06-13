@@ -47,7 +47,7 @@ def plot_u_i(_csv_path: str):
     fig, ax = plt.subplots()
 
     # --- Plot each channel ---
-    data_ch = None
+    data_ch = pd.DataFrame()
     for i in range(8):
         data_ch = csv_data.loc[ (csv_data["Channel"] == i) ]
         #data_ch = csv_data.loc[ (csv_data["Channel"] == i) & (csv_data["calib Current"] > 0.0)]
@@ -186,8 +186,8 @@ if __name__ == "__main__":
         sys.exit()
     csv_path = os.getcwd() + "/" + csv_filename
     
-    #plot_u_i(csv_path)
-    plot_t_i(csv_path)
+    plot_u_i(csv_path)
+    #plot_t_i(csv_path)
     
     #channelnum = int( sys.argv[1] )
     #compare_channel(channelnum)
