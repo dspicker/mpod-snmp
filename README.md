@@ -13,6 +13,10 @@ Controlling the Wiener MPOD via snmp to perform High-Voltage tests in the lab du
     sudo cp WIENER-CRATE-MIB.txt usr/share/snmp/mibs
     ```
 
+    To install snmp-mibs-downloader in debian, you need to add non-free sources
+    to /etc/apt/sources.list 
+    Put `contrib non-free non-free-firmware` at the end of each line.
+
 2. Python version  
     Make sure, the correct python version is available on your system. See Pipfile for the exact version.
     It is recommended to use pyenv for this. If necessary, do e.g. `pyenv install 3.12`. Then activate it with `pyenv shell 3.12`
